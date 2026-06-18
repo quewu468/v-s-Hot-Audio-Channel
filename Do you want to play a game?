@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ghostface — Dirty Talk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@300;400;600');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
+
+body {
+  background: #050505;
+  color: #b0a098;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── noise ── */
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* ═══ STAGE -1: VHS INTRO ═══ */
+.vhs-intro {
+  position: fixed; inset: 0; z-index: 300;
+  background: #000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.8s, visibility 0.8s;
+}
+.vhs-intro.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* CRT scanlines */
+.vhs-intro::before {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.15) 2px,
+    rgba(0,0,0,0.15) 4px
+  );
+}
+
+/* CRT glow */
+.vhs-intro::after {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(200,50,50,0.03) 0%, transparent 70%);
+}
+
+.vhs-content {
+  position: relative; z-index: 2;
+  width: min(100%, 360px);
+  margin: 0 auto;
+  padding: 32px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: vhsFlicker 0.15s ease-in-out 3;
+}
+@keyframes vhsFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.vhs-icon {
+  width: 64px; height: 56px;
+  margin: 0 0 24px;
+  position: relative;
+  flex-shrink: 0;
+}
+.vhs-icon-inner {
+  width: 100%; height: 100%;
+  border: 2px solid #442222;
+  border-radius: 10px;
+  background: rgba(20,10,10,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.vhs-icon::after {
+  content: '⏺'; position: absolute; top: -6px; right: -8px;
+  font-size: 12px; color: #c44;
+  animation: recBlink 1s step-end infinite;
+}
+@keyframes recBlink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+.vhs-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px; letter-spacing: 2px;
+  line-height: 1.5;
+  color: #cc5555; margin-bottom: 10px;
+  text-shadow: 0 0 8px rgba(200,50,50,0.3);
+}
+.vhs-subtitle {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px; letter-spacing: 1px;
+  line-height: 1.6;
+  color: #7a5a5a; margin-bottom: 6px;
+  max-width: 280px;
+}
+.vhs-warning {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 2px;
+  color: #442a2a; margin-bottom: 0;
+}
+
+.vhs-actions {
+  width: 100%;
+  max-width: 300px;
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.vhs-nsfw {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #4a2020;
+  border-radius: 4px;
+  background: rgba(40,15,15,0.35);
+  box-sizing: border-box;
+}
+.vhs-nsfw-label {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 2px;
+  color: #aa4444; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.vhs-nsfw .nsfw-desc {
+  display: block;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px; letter-spacing: 0.5px;
+  line-height: 1.5;
+  color: #6a3a3a;
+}
+
+.vhs-start-btn {
+  width: 100%;
+  padding: 15px 20px;
+  background: transparent;
+  border: 1.5px solid #cc4444;
+  color: #cc4444;
+  font-family: 'Special Elite', monospace;
+  font-size: 15px; letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 4px;
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+.vhs-start-btn:hover, .vhs-start-btn:active {
+  background: rgba(200,50,50,0.12);
+  box-shadow: 0 0 24px rgba(200,50,50,0.15);
+}
+
+/* ═══ STAGE 1: CALL SCREEN (overlay) ═══ */
+.call-screen {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #0f0909 0%, #020101 100%);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s;
+}
+.call-screen.minimized {
+  transform: translateY(-110%); opacity: 0; pointer-events: none;
+}
+
+.cs-phone {
+  width: 220px; height: 440px;
+  background: linear-gradient(175deg, #181010 0%, #0a0505 100%);
+  border-radius: 34px;
+  border: 2px solid #2a1818;
+  box-shadow: 0 0 80px rgba(160,30,30,0.1), 0 0 160px rgba(160,30,30,0.04);
+  display: flex; flex-direction: column;
+  align-items: center; padding: 24px 16px 18px;
+  position: relative;
+  animation: phoneFloat 4s ease-in-out infinite;
+}
+.cs-phone.ringing {
+  animation: phoneVibrate 0.15s ease-in-out 20, phoneFloat 4s ease-in-out infinite;
+}
+@keyframes phoneFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes phoneVibrate {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(-2px) translateY(-1px); }
+  75% { transform: translateX(2px) translateY(1px); }
+}
+
+.cs-phone-notch {
+  width: 90px; height: 5px;
+  background: #1a1010; border-radius: 3px;
+  margin-bottom: 20px;
+}
+
+.cs-phone-screen {
+  width: 188px; height: 300px;
+  background: #000;
+  border-radius: 18px;
+  border: 1px solid #1a0e0e;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+
+.cs-caller-info { text-align: center; z-index: 2; }
+.cs-caller-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 4px;
+  color: #553333; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.cs-caller-name {
+  font-family: 'Special Elite', monospace;
+  font-size: 22px; letter-spacing: 4px;
+  color: #cc4444; text-shadow: 0 0 20px rgba(200,50,50,0.4);
+}
+.cs-caller-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px; letter-spacing: 3px;
+  color: #442a2a; margin-top: 6px;
+}
+
+.cs-ring-indicator {
+  position: absolute; inset: 0; border-radius: 18px;
+  animation: ringPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ringPulse {
+  0%, 100% { box-shadow: inset 0 0 0 0 rgba(200,50,50,0); }
+  30% { box-shadow: inset 0 0 50px 12px rgba(200,50,50,0.18); }
+  60% { box-shadow: inset 0 0 0 0 rgba(200,50,50,0); }
+}
+
+.cs-buttons { display: flex; gap: 32px; margin-top: 22px; }
+.cs-btn {
+  width: 50px; height: 50px; border-radius: 50%;
+  border: 1.5px solid; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cs-btn-decline {
+  background: #1a0c0c; border-color: #4a2020; color: #d44;
+  box-shadow: 0 0 24px rgba(200,0,0,0.1);
+}
+.cs-btn-decline:hover, .cs-btn-decline:active { background: #2a1010; }
+.cs-btn-answer {
+  background: #0c1a0c; border-color: #2a4a2a; color: #4c4;
+  box-shadow: 0 0 24px rgba(0,180,0,0.12);
+}
+.cs-btn-answer:hover, .cs-btn-answer:active { background: #102a10; }
+.cs-btn svg { width: 20px; height: 20px; }
+
+.cs-hint {
+  margin-top: 28px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 2px;
+  color: #332020; text-align: center;
+}
+
+.cs-vid {
+  position: fixed; bottom: 28px;
+  font-family: 'Special Elite', monospace;
+  font-size: 9px; letter-spacing: 1.5px;
+  color: #1a1010; text-align: center;
+  pointer-events: none; z-index: 201;
+}
+
+/* ═══ STAGE 2: CONTENT ═══ */
+.app-container {
+  max-width: 600px; margin: 0 auto;
+  padding: 0 16px 60px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s 0.2s, transform 0.6s 0.2s;
+}
+.app-container.visible { opacity: 1; transform: translateY(0); }
+
+.mini-phone-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: linear-gradient(180deg, rgba(5,5,5,0.98) 60%, rgba(5,5,5,0) 100%);
+  padding: 14px 0 10px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  font-family: 'Special Elite', monospace;
+  font-size: 11px; letter-spacing: 2px;
+}
+.mini-phone-bar .mini-caller { color: #cc4444; }
+.mini-phone-bar .mini-sep { color: #2a1515; }
+.mini-phone-bar .mini-dur {
+  color: #4a6a4a; font-size: 10px; min-width: 40px; text-align: right;
+}
+.mini-phone-bar .mini-progress {
+  flex: 1; height: 1px;
+  background: #1a1010; border-radius: 1px;
+  overflow: hidden; max-width: 120px;
+}
+.mini-phone-bar .mini-progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #6a3a3a, #b44);
+  transition: width 0.3s linear;
+}
+
+.mini-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid #2a1515; background: #0d0707;
+  color: #c44; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+}
+
+/* floating pause button — follows scroll */
+.float-pause {
+  position: fixed; bottom: 24px; right: 24px; z-index: 300;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #0c1a0c;
+  border: 1.5px solid #2a4a2a;
+  color: #4c4; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 20px rgba(0,180,0,0.15);
+  transition: all 0.3s;
+  opacity: 0; transform: scale(0.8);
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.float-pause.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+.float-pause.paused { background: #2a1515; border-color: #4a2020; color: #d44; }
+
+.script-header {
+  margin: 24px 0 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #141010;
+}
+.script-header h1 {
+  font-family: 'Special Elite', monospace;
+  font-size: 22px; letter-spacing: 4px;
+  color: #c45555; text-transform: uppercase;
+  line-height: 1.3; margin-bottom: 6px;
+}
+.script-header .sub {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px; color: #7a5a5a; letter-spacing: 2px;
+}
+
+.line-group {
+  display: flex; flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  padding: 16px 0;
+  transition: background 0.4s, border-color 0.4s;
+  cursor: pointer; border-radius: 6px;
+  padding-left: 10px; position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.line-group:first-of-type { border-top: 1px solid rgba(255,255,255,0.02); }
+.line-group:active { opacity: 0.6; }
+.line-group.active {
+  background: rgba(180,40,40,0.05);
+  border-color: rgba(180,40,40,0.12);
+}
+.line-group.active::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: #c44; border-radius: 1px;
+}
+
+.line-en {
+  font-family: 'Special Elite', monospace;
+  font-size: 13px; line-height: 1.75;
+  color: #b09590; letter-spacing: 0.5px;
+}
+.line-zh {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px; line-height: 1.7;
+  color: #706060; letter-spacing: 1px;
+}
+.line-en .highlight, .line-zh .highlight { color: #cc5050; font-weight: 700; }
+
+.line-time {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px; letter-spacing: 1px;
+  color: #2a1818; align-self: flex-end;
+  margin-top: 2px;
+}
+
+.vid-footer {
+  text-align: center; padding: 40px 0 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 1.5px;
+  color: #1a1010;
+}
+.vid-footer .vid-copy {
+  font-family: 'Special Elite', monospace;
+  font-size: 10px; letter-spacing: 1px;
+  color: #2a1818; user-select: all;
+  display: block; margin-top: 3px;
+}
+
+@media (min-width: 768px) {
+  .app-container { max-width: 660px; }
+  .script-header h1 { font-size: 26px; letter-spacing: 5px; }
+  .line-en { font-size: 14px; }
+  .line-zh { font-size: 13px; }
+  .cs-phone { width: 200px; height: 410px; }
+  .cs-phone-screen { width: 170px; height: 270px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ INTRO: VHS Screen ═══ -->
+<div class="vhs-intro" id="vhsIntro">
+  <div class="vhs-content">
+    <div class="vhs-icon">
+      <div class="vhs-icon-inner">🎧</div>
+    </div>
+    <div class="vhs-title">你想玩个游戏吗？</div>
+    <div class="vhs-subtitle">提示佩戴好耳机以获得最佳体验</div>
+    <div class="vhs-warning">HEADPHONES REQUIRED</div>
+    <div class="vhs-actions">
+      <div class="vhs-nsfw">
+        <span class="vhs-nsfw-label">⚠ NSFW — 18+</span>
+        <span class="nsfw-desc">内含成人限制级内容，请确保隐私安全</span>
+      </div>
+      <button class="vhs-start-btn" id="btnStart">开始通话</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CALL SCREEN ═══ -->
+<div class="call-screen" id="callScreen" style="display:none;">
+  <div class="cs-phone ringing" id="phoneRing">
+    <div class="cs-phone-notch"></div>
+    <div class="cs-phone-screen">
+      <div class="cs-ring-indicator"></div>
+      <div class="cs-caller-info">
+        <div class="cs-caller-label">INCOMING CALL</div>
+        <div class="cs-caller-name">UNKNOWN</div>
+        <div class="cs-caller-sub">NO CALLER ID</div>
+      </div>
+    </div>
+    <div class="cs-buttons">
+      <button class="cs-btn cs-btn-decline" id="btnDeclineMain" title="Decline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <button class="cs-btn cs-btn-answer" id="btnAnswerMain" title="Answer">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.58.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.58 1 1 0 01-.25 1.01l-2.2 2.2z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="cs-hint">PRESS GREEN TO ANSWER</div>
+  <div class="cs-vid">Voice ID: uM4cBejas01XFrltONCS</div>
+</div>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="app-container" id="appContainer">
+  <div class="mini-phone-bar">
+    <span class="mini-caller">UNKNOWN</span>
+    <span class="mini-sep">—</span>
+    <span class="mini-dur" id="miniDur">0:00</span>
+    <div class="mini-progress"><div class="mini-progress-fill" id="miniProgress"></div></div>
+    <button class="mini-btn" id="btnHangup" title="挂断">✕</button>
+  </div>
+
+  <div class="script-header">
+    <h1>Do You Like<br>Scary Movies?</h1>
+    <div class="sub">你喜欢恐怖电影吗？</div>
+  </div>
+
+  <div id="scriptContainer"></div>
+
+  <div class="vid-footer">
+    VOICE ID
+    <span class="vid-copy">uM4cBejas01XFrltONCS</span>
+  </div>
+</div>
+
+<!-- floating pause button (body level for correct fixed positioning) -->
+<button class="float-pause" id="btnFloatPause" title="暂停">⏸</button>
+
+<script>
+// ═══ PHONE LINE STATIC (real phone feeling) ═══
+function playPhoneLineStatic() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const dur = 2.2;
+  const sr = ctx.sampleRate;
+  const now = ctx.currentTime;
+
+  // Brown noise (low-heavy, like phone hum) — much louder
+  const noiseBuf = ctx.createBuffer(1, sr * dur, sr);
+  const nd = noiseBuf.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < nd.length; i++) {
+    const white = Math.random() * 2 - 1;
+    last = (last + 0.02 * white) / 1.02;
+    nd[i] = last * 0.5;
+  }
+  const noiseSrc = ctx.createBufferSource();
+  noiseSrc.buffer = noiseBuf;
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(600, now);
+  noiseFilter.Q.value = 0.8;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.18, now);
+  noiseGain.gain.linearRampToValueAtTime(0.12, now + dur * 0.7);
+  noiseGain.gain.linearRampToValueAtTime(0.03, now + dur);
+  noiseSrc.connect(noiseFilter).connect(noiseGain).connect(ctx.destination);
+  noiseSrc.start(now); noiseSrc.stop(now + dur);
+
+  // 60Hz hum (phone line) — louder
+  const hum = ctx.createOscillator();
+  hum.type = 'sine';
+  hum.frequency.setValueAtTime(60, now);
+  const humGain = ctx.createGain();
+  humGain.gain.setValueAtTime(0.12, now);
+  humGain.gain.linearRampToValueAtTime(0.02, now + dur);
+  hum.connect(humGain).connect(ctx.destination);
+  hum.start(now); hum.stop(now + dur);
+
+  // 120Hz harmonic
+  const hum2 = ctx.createOscillator();
+  hum2.type = 'sine';
+  hum2.frequency.setValueAtTime(120, now);
+  const hum2Gain = ctx.createGain();
+  hum2Gain.gain.setValueAtTime(0.05, now);
+  hum2Gain.gain.linearRampToValueAtTime(0.008, now + dur);
+  hum2.connect(hum2Gain).connect(ctx.destination);
+  hum2.start(now); hum2.stop(now + dur);
+
+  // Pops and crackles — more and louder
+  for (let i = 0; i < 5; i++) {
+    const crackleTime = now + 0.2 + Math.random() * 1.6;
+    const c = ctx.createOscillator();
+    c.type = 'square';
+    c.frequency.setValueAtTime(80 + Math.random() * 600, crackleTime);
+    const cg = ctx.createGain();
+    cg.gain.setValueAtTime(0.04 + Math.random() * 0.06, crackleTime);
+    cg.gain.exponentialRampToValueAtTime(0.001, crackleTime + 0.05);
+    c.connect(cg).connect(ctx.destination);
+    c.start(crackleTime); c.stop(crackleTime + 0.06);
+  }
+
+  // High-frequency hiss overlay (telephone line) — new, louder
+  const hissBuf = ctx.createBuffer(1, sr * dur, sr);
+  const hd = hissBuf.getChannelData(0);
+  for (let i = 0; i < hd.length; i++) {
+    hd[i] = (Math.random() * 2 - 1) * 0.3;
+  }
+  const hissSrc = ctx.createBufferSource();
+  hissSrc.buffer = hissBuf;
+  const hissFilter = ctx.createBiquadFilter();
+  hissFilter.type = 'highpass';
+  hissFilter.frequency.setValueAtTime(2000, now);
+  const hissGain = ctx.createGain();
+  hissGain.gain.setValueAtTime(0.08, now);
+  hissGain.gain.linearRampToValueAtTime(0.015, now + dur);
+  hissSrc.connect(hissFilter).connect(hissGain).connect(ctx.destination);
+  hissSrc.start(now); hissSrc.stop(now + dur);
+}
+
+// ═══ PHONE ANSWER PICKUP SOUND ═══
+function playPickupSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const now = ctx.currentTime;
+  // Metallic click — short noise burst
+  const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    const t = i / ctx.sampleRate;
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 60) * 1.5;
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.15, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+  noise.connect(noiseGain).connect(ctx.destination);
+  noise.start(now); noise.stop(now + 0.1);
+
+  // Low click
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(800, now);
+  osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+  g.gain.setValueAtTime(0.15, now);
+  g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+  osc.connect(g).connect(ctx.destination);
+  osc.start(now); osc.stop(now + 0.08);
+
+  // Soft thud
+  const osc2 = ctx.createOscillator();
+  const g2 = ctx.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(150, now);
+  osc2.frequency.exponentialRampToValueAtTime(60, now + 0.1);
+  g2.gain.setValueAtTime(0.1, now);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+  osc2.connect(g2).connect(ctx.destination);
+  osc2.start(now); osc2.stop(now + 0.15);
+
+  // Tone beep (like phone pickup acknowledgement)
+  setTimeout(() => {
+    const ctx2 = new (window.AudioContext || window.webkitAudioContext)();
+    const n = ctx2.currentTime;
+    const b = ctx2.createOscillator();
+    const bg = ctx2.createGain();
+    b.type = 'sine';
+    b.frequency.setValueAtTime(440, n);
+    b.frequency.setValueAtTime(480, n + 0.05);
+    bg.gain.setValueAtTime(0.08, n);
+    bg.gain.exponentialRampToValueAtTime(0.001, n + 0.15);
+    b.connect(bg).connect(ctx2.destination);
+    b.start(n); b.stop(n + 0.18);
+  }, 120);
+}
+
+// ═══ VINTAGE LANDLINE RING (mechanical dual-bell ringer) ═══
+let ringtoneCtx = null;
+let ringtonePlaying = false;
+let ringtoneTimer = null;
+
+function startRingtone() {
+  if (ringtonePlaying) return;
+  ringtonePlaying = true;
+  ringtoneCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Classic electro-mechanical ringer: two gongs struck alternately
+  const BELL_LO = 480;
+  const BELL_HI = 620;
+  const STRIKE_GAP = 0.065;   // ~15 strikes/sec
+  const RING_ON = 1.9;        // burst length (US-style ~2s)
+  const RING_OFF = 3.1;       // pause between bursts
+
+  function strikeBell(freq, time, vol) {
+    const ctx = ringtoneCtx;
+    const dur = STRIKE_GAP * 3.5;
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    const harm = ctx.createOscillator();
+    harm.type = 'sine';
+    harm.frequency.value = freq * 2.02;
+
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'bandpass';
+    filt.frequency.value = freq;
+    filt.Q.value = 6;
+
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(vol, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+    const hg = ctx.createGain();
+    hg.gain.value = 0.22;
+
+    osc.connect(filt).connect(g).connect(ctx.destination);
+    harm.connect(hg).connect(g);
+    osc.start(time); osc.stop(time + dur);
+    harm.start(time); harm.stop(time + dur);
+
+    // Clapper tick — tiny click at each hammer strike
+    const clickLen = Math.floor(STRIKE_GAP * ctx.sampleRate);
+    const clickBuf = ctx.createBuffer(1, clickLen, ctx.sampleRate);
+    const clickData = clickBuf.getChannelData(0);
+    for (let i = 0; i < clickLen; i++) {
+      clickData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (clickLen * 0.08));
+    }
+    const click = ctx.createBufferSource();
+    click.buffer = clickBuf;
+    const cg = ctx.createGain();
+    cg.gain.setValueAtTime(0.04, time);
+    cg.gain.exponentialRampToValueAtTime(0.001, time + 0.025);
+    const cf = ctx.createBiquadFilter();
+    cf.type = 'highpass';
+    cf.frequency.value = 1200;
+    click.connect(cf).connect(cg).connect(ctx.destination);
+    click.start(time); click.stop(time + 0.03);
+  }
+
+  function playRingBurst() {
+    if (!ringtonePlaying) return;
+    const now = ringtoneCtx.currentTime;
+    const strikes = Math.floor(RING_ON / STRIKE_GAP);
+    for (let i = 0; i < strikes; i++) {
+      const freq = i % 2 === 0 ? BELL_LO : BELL_HI;
+      strikeBell(freq, now + i * STRIKE_GAP, 0.17);
+    }
+    ringtoneTimer = setTimeout(playRingPause, RING_ON * 1000);
+  }
+
+  function playRingPause() {
+    if (!ringtonePlaying) return;
+    ringtoneTimer = setTimeout(playRingBurst, RING_OFF * 1000);
+  }
+
+  playRingBurst();
+}
+
+function stopRingtone() {
+  ringtonePlaying = false;
+  if (ringtoneTimer) { clearTimeout(ringtoneTimer); ringtoneTimer = null; }
+  if (ringtoneCtx) { ringtoneCtx.close().catch(() => {}); ringtoneCtx = null; }
+}
+
+// ═══ DATA ═══
+const SEG_FILES = ['v5_seg1.mp3','v5_seg2.mp3','v5_seg3.mp3','v5_seg4.mp3'];
+const SEG_STARTS = [0, 102.4, 241.4, 322.2];
+const TOTAL_DUR = 388.8;
+
+const scriptPairs = [
+  { en: "Well well well... look who finally picked up the <span class='highlight'>fucking</span> phone.", zh: "啧啧啧……看看是谁终于接了这 <span class='highlight'>操蛋</span> 的电话。", start: 0.0 },
+  { en: "I've been waiting for you, sweetheart. Waiting real <span class='highlight'>fucking</span> patiently. But patience was never my strong suit.", zh: "我一直在等你，亲爱的。非常有 <span class='highlight'>他妈</span> 耐心地等。但耐心从来不是我的强项。", start: 6.4 },
+  { en: "You know what I've been doing instead? Watching you. Every. Single. Night. Through that little window of yours... while you're in there doing those <span class='highlight'>filthy</span> little things you think nobody sees.", zh: "你知道我一直在做什么吗？看着你。每。一。个。夜晚。透过你那扇小窗户……当你在里面做那些你以为没人看见的 <span class='highlight'>肮脏</span> 小动作。", start: 16.4 },
+  { en: "Yeah. I see everything. The way you bite your lip when you think you're alone. The way your hand slides down... mmm, just like that. Don't pretend you don't know what I'm talking about. <span class='highlight'>Don't you fucking dare.</span>", zh: "没错。我什么都看见了。你独自一人时咬嘴唇的样子。你的手往下滑的样子……嗯，就是这样。别假装不知道我在说什么。<span class='highlight'>你他妈敢装傻。</span>", start: 34.5 },
+  { en: "I'm gonna tell you exactly what I want from you. And you're gonna listen. Every. <span class='highlight'>Fucking.</span> Word. Because if you hang up... I'll be at your door before you can even scream. And we both know you don't want that. Or maybe you do.", zh: "我现在就告诉你我要你做什么。你给我听着。每。<span class='highlight'>一。</span>个。<span class='highlight'>字。</span>因为如果你挂断……在你尖叫之前我就已经在你门口了。我们俩都知道你不想那样。还是说……你想？", start: 56.8 },
+  { en: "Here's what's gonna happen. You're gonna get on your knees. Right now. Don't give me that <span class='highlight'>bullshit</span>. I know you're alone. I know exactly where you are, exactly what you're wearing... <span class='highlight'>or not wearing.</span>", zh: "接下来会发生什么。你给我跪下。就现在。别跟我扯那些 <span class='highlight'>屁话</span>。我知道你一个人。我知道你在哪，知道你穿什么……<span class='highlight'>或者没穿什么。</span>", start: 82.5 },
+  { en: "That little black thing. The one with the lace. <span class='highlight'>Fuck.</span> You wore it for me, didn't you? <span class='highlight'>Say it.</span> Say you wore it for me.", zh: "那件黑色的小东西。带蕾丝的那件。<span class='highlight'>操。</span>你是为我穿的，对不对？<span class='highlight'>说出来。</span>说你是为我穿的。", start: 102.4 },
+  { en: "<span class='highlight'>Good girl.</span> Now I want you to do something for me. Put your hand on your throat. Not hard. Just... feel it. Feel your pulse. That's how fast your heart beats when you're terrified. Now imagine my hand there instead. Bigger. Stronger. Squeezing just enough to make you gasp.", zh: "<span class='highlight'>乖女孩。</span>现在我要你为我做一件事。把手放在你的喉咙上。别用力。就……感受它。感受你的脉搏。这就是你被吓到时心跳的速度。现在想象我的手在那里。更大。更有力。刚好掐到你喘不过气。", start: 117.8 },
+  { en: "Yeah. Just like that. I can hear you breathing harder already. That turns you on, doesn't it? <span class='highlight'>You sick little slut.</span> You're getting wet just thinking about a killer's hands around your throat. Tell me I'm wrong.", zh: "对。就是这样。我已经能听到你呼吸变重了。这让你兴奋了，不是吗？<span class='highlight'>你这个小变态骚货。</span>光想着杀人犯的手掐着你的脖子你就湿了。告诉我我说错了。", start: 148.1 },
+  { en: "That's what I thought. Nothing to say. That's alright. I like it better when you're quiet anyway. Just those little sounds you make... those breathy little gasps. Makes me want to <span class='highlight'>fucking ruin you.</span>", zh: "我就知道。无话可说了。没关系。反正我更喜欢你安静的样子。就那些你发出的细微声音……那些带喘气的轻微呻吟。让我想把 <span class='highlight'>你彻底操烂。</span>", start: 171.0 },
+  { en: "Slide that hand down now. Slowly. Don't rush it. I want to hear every sound your body makes. Every whimper. Every gasp. <span class='highlight'>Every fucking moan.</span>", zh: "现在把手往下滑。慢慢地。别着急。我想听你身体发出的每一个声音。每一声呜咽。每一声喘息。<span class='highlight'>每一声操蛋的呻吟。</span>", start: 192.0 },
+  { en: "That's it. Yeah. <span class='highlight'>Fuck.</span> You have no idea what I'm gonna do to you when I get there. <span class='highlight'>No fucking idea.</span>", zh: "就是这样。对。<span class='highlight'>操。</span>你根本不知道我到那儿之后会对你做什么。<span class='highlight'>你他妈完全不知道。</span>", start: 207.4 },
+  { en: "I'm gonna pin you against that wall. One hand on your throat, the other... you can use your imagination. I'm gonna make you <span class='highlight'>beg.</span> Beg for it like the <span class='highlight'>desperate little whore</span> you are.", zh: "我要把你按在那面墙上。一只手掐着你的喉咙，另一只手……你可以自己想象。我要让你 <span class='highlight'>求我。</span>像你这个 <span class='highlight'>绝望的小婊子</span> 一样求我。", start: 220.4 },
+  { en: "And when you finally say please... when that word falls out of your pretty little mouth all broken and needy... I'm gonna give you exactly what you've been <span class='highlight'>craving.</span>", zh: "当你终于说出求你了……当那个词从你漂亮的小嘴里破碎而饥渴地掉出来……我会给你你一直 <span class='highlight'>渴望</span> 的东西。", start: 241.4 },
+  { en: "But not gently. <span class='highlight'>Fuck no.</span> I'm gonna split you open. Every inch. <span class='highlight'>Every fucking inch</span> until you can't remember your own name. Until the only word left in that pretty head of yours is <span class='highlight'>my fucking name.</span>", zh: "但不会温柔。<span class='highlight'>操他妈当然不会。</span>我要把你劈开。每一寸。<span class='highlight'>每一操蛋寸</span>，直到你记不起自己的名字。直到你那漂亮的脑袋里只剩下 <span class='highlight'>我操蛋的名字。</span>", start: 258.5 },
+  { en: "You're gonna scream for me. And I don't mean little polite screams. I mean the kind that rip your throat raw. The kind your neighbors pretend they didn't hear. And I'm gonna enjoy <span class='highlight'>every single one.</span> <span class='highlight'>Every. Fucking. One.</span>", zh: "你会为我尖叫。我指的不是那种礼貌的小声尖叫。是那种把嗓子撕破的尖叫。那种你邻居假装没听到的尖叫。我会享受 <span class='highlight'>每一声。</span><span class='highlight'>每。一。操蛋。声。</span>", start: 280.3 },
+  { en: "You still there, sweetheart? Your breathing's gotten faster. I can hear it. You're touching yourself right now, aren't you? <span class='highlight'>Don't lie.</span> I can hear the wet sounds from here. <span class='highlight'>Fuck, that's hot.</span>", zh: "还在吗，亲爱的？你的呼吸变快了。我听得出来。你现在在摸自己，对不对？<span class='highlight'>别撒谎。</span>我从这儿都能听到湿漉漉的声音。<span class='highlight'>操，真他妈性感。</span>", start: 303.3 },
+  { en: "Keep going. <span class='highlight'>Don't you dare stop.</span> I want you right on the edge when I walk through that door. Teetering. Desperate. <span class='highlight'>So fucking ready for me.</span>", zh: "继续。<span class='highlight'>你敢停下来试试。</span>我要我走进那扇门的时候你正在边缘。摇摇欲坠。饥渴难耐。<span class='highlight'>为我完全准备好。</span>", start: 322.2 },
+  { en: "And when I get there... I'm not gonna stop until you're a <span class='highlight'>trembling fucking mess.</span> Until you can't walk. Can't think. Can't do anything but lie there and <span class='highlight'>drip.</span>", zh: "等我到了……我不会停的，直到你变成一个 <span class='highlight'>颤抖的操蛋破烂货。</span>直到你走不了路。无法思考。什么都做不了，只能躺在那里 <span class='highlight'>滴水。</span>", start: 335.8 },
+  { en: "And then... I'm gonna do it all over again. <span class='highlight'>Because one round is never enough.</span> Not with a body like yours.", zh: "然后……我会从头再来一遍。<span class='highlight'>因为一轮永远不够。</span>尤其面对你这样的身体。", start: 351.0 },
+  { en: "Now here's what I want you to do. Don't move. Don't hang up. <span class='highlight'>Don't even fucking breathe too loud.</span> Just stay right there on your knees... and wait for me like the <span class='highlight'>good little slut</span> you are.", zh: "现在这是我要你做的。别动。别挂电话。<span class='highlight'>连呼吸都不准太大声。</span>就跪在那里别动……然后等着我，像个 <span class='highlight'>乖小骚货</span> 一样。", start: 362.1 },
+  { en: "I'm already on my way.", zh: "我已经在路上了。", start: 381.5 },
+  { en: "See you soon, sweetheart.", zh: "很快就能见到你了，亲爱的。", start: 384.1 },
+  { en: "<span class='highlight'>Don't bother locking the door.</span>", zh: "<span class='highlight'>别费心锁门了。</span>", start: 386.2 }
+];
+
+// ═══ AUDIO ENGINE ═══
+let isPlaying = false, userSeekTime = 0;
+let currentSegIdx = -1, currentAudio = null, globalTime = 0;
+const segAudio = SEG_FILES.map((f, i) => { const a = new Audio(f); a.preload = 'auto'; a._idx = i; return a; });
+
+function stopAllSegs() {
+  segAudio.forEach(a => a.pause());
+  if (currentAudio) { currentAudio.removeEventListener('timeupdate', onTimeUpdate); }
+  currentAudio = null; currentSegIdx = -1; globalTime = 0;
+}
+function playSeg(i, startAt = 0) {
+  stopAllSegs();
+  if (i >= segAudio.length) { resetAll(); return; }
+  currentSegIdx = i; currentAudio = segAudio[i];
+  currentAudio.currentTime = startAt;
+  currentAudio.addEventListener('timeupdate', onTimeUpdate);
+  currentAudio.addEventListener('ended', () => playSeg(currentSegIdx + 1, 0));
+  currentAudio.play().catch(() => {});
+}
+function onTimeUpdate() {
+  if (!currentAudio || currentSegIdx < 0) return;
+  globalTime = SEG_STARTS[currentSegIdx] + currentAudio.currentTime;
+  const pct = Math.min(100, (globalTime / TOTAL_DUR) * 100);
+  miniProgress.style.width = `${pct}%`;
+  const m = Math.floor(globalTime / 60), s = String(Math.floor(globalTime % 60)).padStart(2, '0');
+  miniDur.textContent = `${m}:${s}`;
+
+  let activeIdx = -1;
+  for (let i = scriptPairs.length - 1; i >= 0; i--) { if (globalTime >= scriptPairs[i].start) { activeIdx = i; break; } }
+  document.querySelectorAll('.line-group').forEach(el => el.classList.remove('active'));
+  if (activeIdx >= 0) {
+    const el = document.getElementById(`line-${activeIdx}`);
+    if (el) { el.classList.add('active'); if (Date.now() - userSeekTime > 2000) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  }
+}
+function seekTo(sec) {
+  userSeekTime = Date.now();
+  let si = 0;
+  for (let i = SEG_STARTS.length - 1; i >= 0; i--) { if (sec >= SEG_STARTS[i]) { si = i; break; } }
+  playSeg(si, Math.max(0, sec - SEG_STARTS[si]));
+  isPlaying = true;
+  btnFloatPause.classList.add('visible');
+  btnFloatPause.classList.remove('paused');
+  btnFloatPause.textContent = '⏸';
+}
+function resetAll() {
+  isPlaying = false; stopAllSegs();
+  miniProgress.style.width = '0%'; miniDur.textContent = '0:00';
+  document.querySelectorAll('.line-group').forEach(el => el.classList.remove('active'));
+  btnFloatPause.classList.remove('visible');
+}
+
+// ═══ RENDER ═══
+const sc = document.getElementById('scriptContainer');
+scriptPairs.forEach((pair, i) => {
+  const div = document.createElement('div');
+  div.className = 'line-group';
+  div.id = `line-${i}`;
+  const m = Math.floor(pair.start / 60), s = String(Math.floor(pair.start % 60)).padStart(2, '0');
+  div.innerHTML = `<div class="line-en">${pair.en}</div><div class="line-zh">${pair.zh}</div><div class="line-time">${m}:${s}</div>`;
+  div.title = `点击跳到 ${m}:${s}`;
+  div.addEventListener('click', () => { seekTo(pair.start); });
+  sc.appendChild(div);
+});
+
+// ═══ DOM REFS ═══
+const vhsIntro = document.getElementById('vhsIntro');
+const callScreen = document.getElementById('callScreen');
+const appContainer = document.getElementById('appContainer');
+const phoneRing = document.getElementById('phoneRing');
+const miniProgress = document.getElementById('miniProgress');
+const miniDur = document.getElementById('miniDur');
+const btnFloatPause = document.getElementById('btnFloatPause');
+
+// ═══ FLOAT PAUSE ═══
+btnFloatPause.addEventListener('click', () => {
+  if (!isPlaying && !currentAudio) return;
+  if (currentAudio && !currentAudio.paused) {
+    // Pause
+    segAudio.forEach(a => a.pause());
+    btnFloatPause.classList.add('paused');
+    btnFloatPause.textContent = '▶';
+  } else {
+    // Resume
+    if (currentAudio) {
+      currentAudio.play().catch(() => {});
+      btnFloatPause.classList.remove('paused');
+      btnFloatPause.textContent = '⏸';
+    }
+  }
+});
+
+// ═══ FLOW: VHS → CALL → ANSWER ═══
+document.getElementById('btnStart').addEventListener('click', () => {
+  vhsIntro.classList.add('hidden');
+  callScreen.style.display = 'flex';
+  // Trigger ringtone + vibration after a short delay
+  setTimeout(() => {
+    startRingtone();
+    phoneRing.classList.add('ringing');
+    // Vibration API (mobile)
+    if (navigator.vibrate) {
+      // Match vintage ring cadence: ~2s on, ~3s off
+      navigator.vibrate([1900, 3100, 1900, 3100, 1900]);
+    }
+  }, 400);
+  setTimeout(() => { vhsIntro.style.display = 'none'; }, 900);
+});
+
+document.getElementById('btnAnswerMain').addEventListener('click', () => {
+  stopRingtone();
+  phoneRing.classList.remove('ringing');
+  playPickupSound();
+  // Transition to content immediately
+  callScreen.classList.add('minimized');
+  appContainer.classList.add('visible');
+  // Static plays after transition, before Ghostface starts
+  setTimeout(() => {
+    playPhoneLineStatic();
+  }, 500);
+  // Ghostface audio starts after static ends
+  setTimeout(() => {
+    isPlaying = true;
+    playSeg(0, 0);
+    btnFloatPause.classList.add('visible');
+    btnFloatPause.classList.remove('paused');
+    btnFloatPause.textContent = '⏸';
+  }, 2200);
+  setTimeout(() => { callScreen.style.display = 'none'; }, 700);
+});
+
+document.getElementById('btnDeclineMain').addEventListener('click', () => {
+  stopRingtone();
+  phoneRing.classList.remove('ringing');
+  // Go back to VHS screen
+  callScreen.style.display = 'none';
+  vhsIntro.classList.remove('hidden');
+  vhsIntro.style.display = 'flex';
+  if (isPlaying) { resetAll(); }
+});
+
+document.getElementById('btnHangup').addEventListener('click', () => {
+  resetAll();
+});
+</script>
+</body>
+</html>
