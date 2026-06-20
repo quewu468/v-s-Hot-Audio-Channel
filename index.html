@@ -753,40 +753,79 @@ const scriptPairs = [
 // ═══ AUDIO ENGINE ═══
 let isPlaying = false, userSeekTime = 0;
 let currentSegIdx = -1, currentAudio = null, globalTime = 0;
+let lastActiveIdx = -1;
 const segAudio = SEG_FILES.map((f, i) => { const a = new Audio(f); a.preload = 'auto'; a._idx = i; return a; });
 
-function stopAllSegs() {
-  segAudio.forEach(a => a.pause());
-  if (currentAudio) { currentAudio.removeEventListener('timeupdate', onTimeUpdate); }
-  currentAudio = null; currentSegIdx = -1; globalTime = 0;
+function detachSegListeners(a) {
+  if (!a) return;
+  a.removeEventListener('timeupdate', onTimeUpdate);
+  if (a._onEnded) {
+    a.removeEventListener('ended', a._onEnded);
+    a._onEnded = null;
+  }
 }
+
+function stopAllSegs() {
+  segAudio.forEach(a => {
+    a.pause();
+    detachSegListeners(a);
+  });
+  currentAudio = null;
+  currentSegIdx = -1;
+}
+
+function getActiveLineIdx(t) {
+  for (let i = scriptPairs.length - 1; i >= 0; i--) {
+    if (t >= scriptPairs[i].start) return i;
+  }
+  return -1;
+}
+
+function updatePlaybackUI(t, forceScroll = false) {
+  globalTime = t;
+  const pct = Math.min(100, (t / TOTAL_DUR) * 100);
+  miniProgress.style.width = `${pct}%`;
+  const m = Math.floor(t / 60), s = String(Math.floor(t % 60)).padStart(2, '0');
+  miniDur.textContent = `${m}:${s}`;
+
+  const activeIdx = getActiveLineIdx(t);
+  if (activeIdx === lastActiveIdx && !forceScroll) return;
+  lastActiveIdx = activeIdx;
+
+  document.querySelectorAll('.line-group').forEach(el => el.classList.remove('active'));
+  if (activeIdx < 0) return;
+
+  const el = document.getElementById(`line-${activeIdx}`);
+  if (!el) return;
+  el.classList.add('active');
+  if (forceScroll || Date.now() - userSeekTime > 2000) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 function playSeg(i, startAt = 0) {
   stopAllSegs();
   if (i >= segAudio.length) { resetAll(); return; }
-  currentSegIdx = i; currentAudio = segAudio[i];
+  currentSegIdx = i;
+  currentAudio = segAudio[i];
   currentAudio.currentTime = startAt;
   currentAudio.addEventListener('timeupdate', onTimeUpdate);
-  currentAudio.addEventListener('ended', () => playSeg(currentSegIdx + 1, 0));
+  const segIdx = i;
+  const onEnded = () => playSeg(segIdx + 1, 0);
+  currentAudio._onEnded = onEnded;
+  currentAudio.addEventListener('ended', onEnded, { once: true });
+  updatePlaybackUI(SEG_STARTS[i] + startAt, true);
   currentAudio.play().catch(() => {});
 }
+
 function onTimeUpdate() {
   if (!currentAudio || currentSegIdx < 0) return;
-  globalTime = SEG_STARTS[currentSegIdx] + currentAudio.currentTime;
-  const pct = Math.min(100, (globalTime / TOTAL_DUR) * 100);
-  miniProgress.style.width = `${pct}%`;
-  const m = Math.floor(globalTime / 60), s = String(Math.floor(globalTime % 60)).padStart(2, '0');
-  miniDur.textContent = `${m}:${s}`;
-
-  let activeIdx = -1;
-  for (let i = scriptPairs.length - 1; i >= 0; i--) { if (globalTime >= scriptPairs[i].start) { activeIdx = i; break; } }
-  document.querySelectorAll('.line-group').forEach(el => el.classList.remove('active'));
-  if (activeIdx >= 0) {
-    const el = document.getElementById(`line-${activeIdx}`);
-    if (el) { el.classList.add('active'); if (Date.now() - userSeekTime > 2000) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-  }
+  updatePlaybackUI(SEG_STARTS[currentSegIdx] + currentAudio.currentTime);
 }
+
 function seekTo(sec) {
   userSeekTime = Date.now();
+  lastActiveIdx = -1;
   let si = 0;
   for (let i = SEG_STARTS.length - 1; i >= 0; i--) { if (sec >= SEG_STARTS[i]) { si = i; break; } }
   playSeg(si, Math.max(0, sec - SEG_STARTS[si]));
@@ -795,9 +834,14 @@ function seekTo(sec) {
   btnFloatPause.classList.remove('paused');
   btnFloatPause.textContent = '⏸';
 }
+
 function resetAll() {
-  isPlaying = false; stopAllSegs();
-  miniProgress.style.width = '0%'; miniDur.textContent = '0:00';
+  isPlaying = false;
+  stopAllSegs();
+  globalTime = 0;
+  lastActiveIdx = -1;
+  miniProgress.style.width = '0%';
+  miniDur.textContent = '0:00';
   document.querySelectorAll('.line-group').forEach(el => el.classList.remove('active'));
   btnFloatPause.classList.remove('visible');
 }
